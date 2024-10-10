@@ -4,6 +4,8 @@ module square_mod
     
     private
     public :: c_square
+    public :: square
+    public :: square_with_binding
     
     contains
 

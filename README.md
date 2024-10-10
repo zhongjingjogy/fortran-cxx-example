@@ -1,52 +1,53 @@
-# Fortran-C++ Integration Example
+# Hybrid C++/Fortran project & Call Fortran from C++ in CMake Project
 
-This project demonstrates how to wrap a simple Fortran function for use in C++.
+Somewhere else has a comprehensive one, e.g., [CMake Cookbook](https://github.com/dev-cafe/cmake-cookbook) and here you are a simple one.
 
-## Project Structure
+Two examples of calling Fortran from C++ are being examined. They tries to expose the following Fortran functions to C++:
 
-- `src/square.f90`: Fortran module containing a function to calculate the square of a number.
-- `src/FortranWrapper.hpp`: C++ header file declaring the wrapper for the Fortran function.
-- `src/FortranWrapper.cpp`: C++ source file implementing the wrapper function.
-- `src/main.cpp`: C++ main file demonstrating the usage of the wrapped Fortran function.
-- `CMakeLists.txt`: Top-level CMake configuration file.
-- `src/CMakeLists.txt`: CMake configuration file for the source directory.
+```fortran
+module square_mod
+    use, intrinsic :: iso_c_binding, only: c_float
+    implicit none
+    
+    private
+    public :: c_square
+    public :: square
+    public :: square_with_binding
+    
+    contains
 
-## Building the Project
+    ! navie fortran function without binding
+    function square(x)
+        real(c_float), value :: x
+        real(c_float) :: square
+        
+        square = x * x
+    end function square
 
-To build the project, follow these steps:
+    function square_with_binding(x) bind(C, name="square_with_binding")
+        real(c_float), value :: x
+        real(c_float) :: square_with_binding
+        
+        square_with_binding = square(x)
+    end function square_with_binding
 
-1. Create a build directory:
-   ```
-   mkdir build
-   cd build
-   ```
-
-2. Run CMake:
-   ```
-   cmake ..
-   ```
-
-3. Build the project:
-   ```
-   cmake --build .
-   ```
-
-## Running the Example
-
-After building, you can run the example by executing:
-
+    ! fortran function with binding
+    function c_square(x) bind(C, name="c_square")
+        real(c_float), value :: x
+        real(c_float) :: c_square
+        
+        print *, "Fortran: Received input", x
+        c_square = x * x
+        print *, "Fortran: Calculated result", c_square
+    end function c_square
+    
+end module square_mod
 ```
-./bin/fortran_cxx_example
-```
 
-This will calculate the square of 5 using the Fortran function and display the result.
+## Example 1
 
-## How it Works
+Fortran itselfs provides a module to interface with C, e.g., `iso_c_binding`. The practice is to add `bind(C, name="square_with_binding")` to the Fortran functions that are to be exposed to C/C++. Note that `iso_c_binding` should be used in the Fortran source code.
 
-1. The Fortran module `square_mod` in `square.f90` defines a function `square` that calculates the square of a number.
-2. `FortranWrapper.hpp` declares the C++ wrapper function and the external Fortran function with C linkage.
-3. `FortranWrapper.cpp` implements the C++ wrapper function, which calls the Fortran function.
-4. `main.cpp` demonstrates how to use the wrapped Fortran function in C++ code.
-5. The CMake files set up the project to compile and link the Fortran and C++ code together.
+## Example 2
 
-This example shows how you can integrate Fortran code into a C++ project, allowing you to use existing Fortran libraries or write performance-critical parts in Fortran while using them seamlessly in a C++ application.
+The second is to use the FortranCInterface CMake module. The Fortran source code is not modified. Instead, the CMakeLists.txt is modified to include the FortranCInterface module and to specify the symbols to be exported.

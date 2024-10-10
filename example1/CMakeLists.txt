@@ -1,11 +1,7 @@
 add_subdirectory(fortranlib)
-# add_subdirectory(cxxbinding)
 
-# include(FortranCInterface)
-# FortranCInterface_VERIFY(CXX)
+add_executable(example1 "")
 
-add_executable(test "")
+target_sources(example1 PRIVATE main.cpp)
 
-target_sources(test PRIVATE main.cpp)
-
-target_link_libraries(test PUBLIC fortranlib)
+target_link_libraries(example1 PUBLIC fortranlib)
